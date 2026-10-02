@@ -7,20 +7,22 @@ struct Nodo {
 	int Medicion;
 	char UdeMedida[20];
 };
-struct Nodo nodos[124];
-
+struct Nodo *nodos;      //Cambio para memoria dinamica  struct Nodo nodos[124];
+struct Nodo *temp;       //Puntero auxiliar
 void Cargar(struct Nodo *nodo);   //Prototipo de función
 void Mostrar(struct Nodo *nodo);  //Prototipo de función
 int ValidarU(char unidad[]);  //Función para ver la unidad de medida
+void BuscarUnidad(struct Nodo *nodos, int N);  //Función para buscar la medida pedida
 int main(int argc, char *argv[]) {
 	int N, i, op, nuevos;
 	int cargado = 0;
 	do{                                  //Menu para opciones
-		printf("Elija una opcion\n");
+		printf("\nElija una opcion\n");
 		printf("1-Cargar Datos\n");
 		printf("2-Mostrar Datos\n");
 		printf("3-Agregar Datos\n");
-		printf("4-Salir\n");
+		printf("4-Buscar medida\n");
+		printf("5-Salir\n");
 		scanf("%d", &op);
 		switch(op){
 		case 1:
@@ -31,7 +33,7 @@ int main(int argc, char *argv[]) {
 				printf("Ingrese la cantidad de nodos: ");
 				scanf("%d", &N);
 			}
-			
+			nodos = malloc(N * sizeof(struct Nodo));
 			for (i = 0; i < N; i++) {
 				printf("\nNodo %d\n", i + 1);
 				Cargar (&nodos[i]);
@@ -58,20 +60,36 @@ int main(int argc, char *argv[]) {
 					printf("Ingrese nuevamente la cantidad: ");
 					scanf("%d", &nuevos);
 				}
-				for (i = N; i < N + nuevos; i++) {
-					printf("\nNodo %d\n", i + 1);
-					Cargar (&nodos[i]);
+				temp = realloc(nodos, (N + nuevos) * sizeof(struct Nodo));         //para la memoria dinamica
+				
+				if (temp != NULL) {
+					nodos = temp;
+					
+					for (i = N; i < N + nuevos; i++) {
+						printf("\nNodo %d\n", i + 1);
+						Cargar(&nodos[i]);
+					}
+					
+					N = N + nuevos;
+				} else {
+					printf("No se pudo reservar memoria.\n");
 				}
-				N = N + nuevos;
-			} else{
-				printf("Primero debe cargar los datos\n");
-			} 
-			break;
 			}
-		} while(op != 4);
+			break;
+			
+		case 4:                            //Case para buscar unidades
+			if(cargado == 1){
+				BuscarUnidad(nodos, N);
+			}
+			else{
+				printf("Primero debe cargar los datos\n");
+			}
+			break;
+		}
+	}while(op != 5);
+	free (nodos);
 	
 	return 0;
-
 }
 
 
@@ -119,4 +137,16 @@ void Mostrar(struct Nodo *nodo){   //Función de mostrar con -> por ser estructur
 			return 3;
 		}
 		return 0;
-}
+    }
+	void BuscarUnidad(struct Nodo nodos[], int N) {
+		char unidadBuscada[20];
+			
+			printf("Ingrese la unidad que desea buscar: ");
+			scanf("%19s", unidadBuscada);
+			
+			for (int i = 0; i < N; i++) {
+				if (strcmp(nodos[i].UdeMedida, unidadBuscada) == 0) {
+					Mostrar(&nodos[i]);
+				}
+			}
+		}
