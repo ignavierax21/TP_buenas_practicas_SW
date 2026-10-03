@@ -7,11 +7,12 @@ struct Nodo {
 	int Medicion;
 	char UdeMedida[20];
 };
-struct Nodo *nodos;      //Cambio para memoria dinamica  struct Nodo nodos[124];
+struct Nodo *nodos = NULL;      //Cambio para memoria dinamica  struct Nodo nodos[124] e inicializar en NULL para evitar que empiece con basura
 struct Nodo *temp;       //Puntero auxiliar
 void Cargar(struct Nodo *nodo);   //Prototipo de función
 void Mostrar(struct Nodo *nodo);  //Prototipo de función
 int ValidarU(char unidad[]);  //Función para ver la unidad de medida
+void Mayusculas(char cadena[]); //Función para convertir las cadenas en mayusculas y no tener problemas
 void BuscarUnidad(struct Nodo *nodos, int N);  //Función para buscar la medida pedida
 int main(int argc, char *argv[]) {
 	int N, i, op, nuevos;
@@ -26,6 +27,10 @@ int main(int argc, char *argv[]) {
 		scanf("%d", &op);
 		switch(op){
 		case 1:
+			if(cargado == 1){     //Bloque para evitar que se carguen datos si es que ya se cargaron, para eso esta el case de agregar
+				printf("Los datos ya fueron cargados.\n");
+				break;
+			}
 			printf("Ingrese la cantidad de nodos a usar (entre 1 y 124): ");
 			scanf("%d", &N);
 			while (N < 1 || N > 124) {
@@ -34,6 +39,10 @@ int main(int argc, char *argv[]) {
 				scanf("%d", &N);
 			}
 			nodos = malloc(N * sizeof(struct Nodo));
+			if (nodos == NULL) {                //Mejora para verificar si se reservó memoria de forma correcta
+				printf("No se pudo reservar memoria.\n");
+				break;
+			}
 			for (i = 0; i < N; i++) {
 				printf("\nNodo %d\n", i + 1);
 				Cargar (&nodos[i]);
@@ -55,7 +64,7 @@ int main(int argc, char *argv[]) {
 			if(cargado == 1){
 				printf("Ingrese la cantidad de nodos que quiere agregar: ");
 				scanf("%d", &nuevos);
-				while (N + nuevos > 124) {
+				while (nuevos < 1 || N + nuevos > 124) {                   //Mejora para evitar problemas con la validación del 0 o números negativos
 					printf("No puede agregar esa cantidad. El maximo es 124.\n");
 					printf("Ingrese nuevamente la cantidad: ");
 					scanf("%d", &nuevos);
@@ -74,6 +83,8 @@ int main(int argc, char *argv[]) {
 				} else {
 					printf("No se pudo reservar memoria.\n");
 				}
+			}else{
+				printf("Primero debe cargar los datos\n");
 			}
 			break;
 			
@@ -111,6 +122,7 @@ void Cargar(struct Nodo *nodo) { //Función para cargar datos
 		
 	printf("Unidad de medida (TEMP, HUM, PRES): ");  //Cambio en forma de escribir las unidades (nada importante)
 	scanf("%19s", nodo->UdeMedida);
+	Mayusculas(nodo->UdeMedida);                 //LLamada para convertir en Mayusculas
 	tipo = ValidarU(nodo->UdeMedida);
 	
 	if(tipo == 0){
@@ -138,15 +150,31 @@ void Mostrar(struct Nodo *nodo){   //Función de mostrar con -> por ser estructur
 		}
 		return 0;
     }
-	void BuscarUnidad(struct Nodo nodos[], int N) {
-		char unidadBuscada[20];
+		void Mayusculas(char cadena[]) {                   //Función para las mayusculas
+			int i;
 			
-			printf("Ingrese la unidad que desea buscar: ");
+			for (i = 0; cadena[i] != '\0'; i++) {
+				if (cadena[i] >= 'a' && cadena[i] <= 'z') {
+					cadena[i] = cadena[i] - 32;
+				}
+			}
+		}
+		
+	void BuscarUnidad(struct Nodo *nodos, int N) {
+		char unidadBuscada[20];
+		int encontrado = 0;             //Variable para verificar si la cadena existe, sino se avisa(antes no pasaba)
+			
+			printf("Ingrese la unidad que desea buscar(TEMP, HUM, PRES): ");
 			scanf("%19s", unidadBuscada);
+			Mayusculas(unidadBuscada);         //La función que pone en mayusculas para evitar problemas
 			
 			for (int i = 0; i < N; i++) {
 				if (strcmp(nodos[i].UdeMedida, unidadBuscada) == 0) {
 					Mostrar(&nodos[i]);
+					encontrado = 1;
 				}
+			}
+			if (encontrado == 0) {
+				printf("No se encontraron nodos con esa unidad de medida.\n");
 			}
 		}
